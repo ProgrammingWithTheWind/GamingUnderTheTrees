@@ -7,3 +7,4 @@ Idea:
 - The NFT Booster packs can be created by NFT Artists, and the NFT artists can get majority of the funds from the purchases and the admin for the portal can get a small cut as well, this will allow NFT Artists to gain visibility on through this portal.
 - Each mini game played can earn certain amount of points each day
 - And then NFT Artists can earn ongoing royalties as the NFT gets sold/purchased moving forward.
+- Using Windsurf AI to code this project

@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gaming Under The Trees</title>
+  <meta name="description" content="Relaxing mini-games, seasonal points, and NFT booster packs.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+   :root {
+     --bg: #0b0f14;
+     --card: #111720;
+     --muted: #93a1b1;
+     --text: #e6edf3;
+     --accent: #6ee7b7;
+     --accent-2: #60a5fa;
+     --ring: rgba(110, 231, 183, .4);
+   }
+   * { box-sizing: border-box; }
+   html, body { height: 100%; }
+   body {
+     margin: 0;
+     font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+     background: radial-gradient(1200px 600px at 20% -10%, rgba(96,165,250,.15), transparent 60%),
+                 radial-gradient(1000px 500px at 120% 10%, rgba(110,231,183,.12), transparent 60%),
+                 var(--bg);
+     color: var(--text);
+     line-height: 1.5;
+   }
+   .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+   header {
+     position: sticky; top: 0; z-index: 10;
+     background: linear-gradient(to bottom, rgba(11,15,20,.9), rgba(11,15,20,.6), transparent);
+     backdrop-filter: blur(6px);
+   }
+   .nav {
+     display: flex; align-items: center; justify-content: space-between;
+     padding: 10px 0 6px;
+   }
+   .brand { display: inline-flex; gap: 10px; align-items: center; text-decoration: none; color: var(--text); }
+   .logo {
+     width: 36px; height: 36px; border-radius: 10px;
+     background: conic-gradient(from 210deg, var(--accent), var(--accent-2));
+     box-shadow: 0 0 0 6px rgba(110,231,183,.08);
+   }
+   .brand-title { font-weight: 700; letter-spacing: .3px; }
+   .nav-actions { display: flex; gap: 10px; }
+   .btn { cursor: pointer; border: 1px solid #223042; background: #0e141c; color: var(--text); padding: 10px 14px; border-radius: 10px; font-weight: 600; }
+   .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #061018; border: 0; box-shadow: 0 0 0 6px var(--ring); }
+
+   .hero { padding: 60px 0 40px; text-align: center; }
+   .eyebrow { color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: .16em; }
+   h1 { margin: 12px 0 10px; font-size: clamp(28px, 6vw, 48px); line-height: 1.1; }
+   .sub { color: var(--muted); max-width: 760px; margin: 0 auto; font-size: 16px; }
+   .cta { margin-top: 18px; display: inline-flex; gap: 12px; }
+
+   .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 26px; }
+   .card { background: linear-gradient(180deg, rgba(17,23,32,.9), rgba(17,23,32,.6)); border: 1px solid #1f2a37; border-radius: 14px; padding: 16px; min-height: 140px; }
+   .card h3 { margin: 6px 0 6px; font-size: 18px; }
+   .pill { display: inline-block; font-size: 12px; padding: 6px 10px; border-radius: 999px; border: 1px solid #223042; color: var(--muted); }
+
+   .section { padding: 36px 0; }
+   .two-col { display: grid; gap: 20px; grid-template-columns: 1.2fr .8fr; }
+   @media (max-width: 860px) { .two-col { grid-template-columns: 1fr; } }
+   .panel { background: linear-gradient(180deg, rgba(17,23,32,.9), rgba(17,23,32,.6)); border: 1px solid #1f2a37; border-radius: 16px; padding: 20px; }
+   .list { margin: 10px 0 0; padding: 0; list-style: none; }
+   .list li { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; color: var(--muted); }
+   .dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 8px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 0 0 6px rgba(110,231,183,.07); }
+
+   footer { color: #7b8a9a; padding: 36px 0 60px; text-align: center; }
+   a { color: #9bd8ff; text-decoration: none; }
+   a:hover { text-decoration: underline; }
+  </style>
+ </head>
+ <body>
+  <header>
+   <div class="container nav">
+    <a class="brand" href="#">
+     <div class="logo" aria-hidden="true"></div>
+     <div class="brand-title">Gaming Under The Trees</div>
+    </a>
+    <div class="nav-actions">
+     <a class="btn" href="#games">Games</a>
+     <a class="btn" href="#seasons">Seasons</a>
+     <a class="btn" href="#nfts">NFT Booster Packs</a>
+     <a class="btn primary" href="#play">Play Now</a>
+    </div>
+   </div>
+  </header>
+
+  <main>
+   <section class="hero container">
+    <div class="eyebrow">Relax. Play. Collect.</div>
+    <h1>Unwind with relaxing mini‑games under a virtual canopy</h1>
+    <p class="sub">A calm gaming portal focused on wellness and gentle challenge. Earn daily points while playing. Spend them on seasonal NFT booster packs created by independent artists.</p>
+    <div class="cta">
+     <a class="btn primary" href="#play">Start Playing</a>
+     <a class="btn" href="#learn">Learn More</a>
+    </div>
+    <div class="cards">
+     <div class="card">
+      <span class="pill">Daily Points</span>
+      <h3>Play a little every day</h3>
+      <p class="sub">Earn points each session. Return tomorrow for fresh bonuses and calm vibes.</p>
+     </div>
+     <div class="card">
+      <span class="pill">Seasons</span>
+      <h3>New mood each season</h3>
+      <p class="sub">Progress resets with a gentle arc. Spring, Summer, Autumn, Winter—each with themed rewards.</p>
+     </div>
+     <div class="card">
+      <span class="pill">Artist‑Led</span>
+      <h3>NFT booster packs</h3>
+      <p class="sub">Support NFT artists. Packs are collectible; artists receive the majority of proceeds.</p>
+     </div>
+     <div class="card">
+      <span class="pill">Royalties</span>
+      <h3>Ongoing rewards</h3>
+      <p class="sub">Artists earn royalties as collectibles are traded—aligned incentives for creativity.</p>
+     </div>
+    </div>
+   </section>
+
+   <section id="games" class="section container">
+    <div class="two-col">
+     <div class="panel">
+      <h2>Featured Games</h2>
+      <ul class="list">
+       <li><span class="dot"></span>Zen Trails — A gentle pathfinding puzzler with soft soundscapes.</li>
+       <li><span class="dot"></span>Leaf Drift — Guide leaves on a stream; no timers, just flow.</li>
+       <li><span class="dot"></span>Stargaze — Connect constellations at your own pace.</li>
+      </ul>
+     </div>
+     <div class="panel">
+      <h2>How points work</h2>
+      <ul class="list">
+       <li><span class="dot"></span>Earn points by playing a set of mini‑games each day.</li>
+       <li><span class="dot"></span>Streaks add gentle multipliers—missing a day doesn’t punish.</li>
+       <li><span class="dot"></span>Spend points on seasonal booster packs for cosmetic rewards.</li>
+      </ul>
+     </div>
+    </div>
+   </section>
+
+   <section id="seasons" class="section container">
+    <div class="two-col">
+     <div class="panel">
+      <h2>Seasonal rhythm</h2>
+      <p class="sub">Every season brings a fresh palette, ambient soundtrack, and gentle objectives. Your core collection persists while seasonal progress softly resets for a sense of renewal.</p>
+     </div>
+     <div class="panel">
+      <h2>Season Pass (optional)</h2>
+      <ul class="list">
+       <li><span class="dot"></span>Free track for everyone with cosmetic unlocks.</li>
+       <li><span class="dot"></span>Premium track purchasable via points or BlockDAG tokens.</li>
+       <li><span class="dot"></span>Fair odds—no pay‑to‑win, only aesthetics and vibes.</li>
+      </ul>
+     </div>
+    </div>
+   </section>
+
+   <section id="nfts" class="section container">
+    <div class="two-col">
+     <div class="panel">
+      <h2>NFT Booster Packs</h2>
+      <p class="sub">Packs are curated in collaboration with NFT artists. Artists receive the majority of purchase proceeds and ongoing royalties from secondary sales.</p>
+      <ul class="list">
+       <li><span class="dot"></span>Ownable cosmetics to personalize your space.</li>
+       <li><span class="dot"></span>Transparent drop rates and on‑chain provenance.</li>
+       <li><span class="dot"></span>Support emerging artists directly.</li>
+      </ul>
+     </div>
+     <div class="panel">
+      <h2>Get started</h2>
+      <p class="sub">Create an account, play a relaxing game, and claim your first daily points.</p>
+      <div class="cta">
+       <a id="play" class="btn primary" href="#">Play a demo</a>
+       <a class="btn" href="#">Create account</a>
+      </div>
+     </div>
+    </div>
+   </section>
+  </main>
+
+  <footer>
+   <div class="container">
+    <div>© <span id="year"></span> Gaming Under The Trees · Calm gaming, kind community</div>
+    <div style="margin-top:8px; font-size: 13px;">Built for relaxation. Feedback? <a href="mailto:hello@example.com">hello@example.com</a></div>
+   </div>
+  </footer>
+
+  <script>
+   document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+ </body>
+ </html>
