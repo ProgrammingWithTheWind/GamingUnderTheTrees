@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Zen Trails · Gentle Pathfinding</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #111720;
+      --border: #1f2a37;
+      --muted: #93a1b1;
+      --text: #e6edf3;
+      --accent: #6ee7b7;
+      --accent-2: #60a5fa;
+      --ring: rgba(110,231,183,.35);
+      --path: #8bffd4;
+      --start: #a7f3d0;
+      --goal: #93c5fd;
+      --wall: #0f1622;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial;
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(96,165,250,.15), transparent 60%),
+                  radial-gradient(1000px 500px at 120% 10%, rgba(110,231,183,.12), transparent 60%),
+                  var(--bg);
+      color: var(--text);
+    }
+    .container { max-width: 960px; margin: 0 auto; padding: 24px; }
+    header { display:flex; align-items:center; justify-content:space-between; gap: 12px; margin-bottom: 12px; }
+    .brand { display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text); font-weight:700; }
+    .logo { width: 30px; height: 30px; border-radius: 8px; background: conic-gradient(from 210deg, var(--accent), var(--accent-2)); box-shadow: 0 0 0 5px rgba(110,231,183,.08); }
+    .btn { cursor:pointer; border:1px solid var(--border); background:#0e141c; color:var(--text); padding:9px 12px; border-radius:10px; font-weight:600; }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color:#061018; border:0; box-shadow: 0 0 0 6px var(--ring); }
+
+    .panel { background: linear-gradient(180deg, rgba(17,23,32,.9), rgba(17,23,32,.6)); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
+    .hud { display:flex; flex-wrap:wrap; align-items:center; gap:10px; justify-content: space-between; margin: 12px 0 18px; }
+    .stat { color: var(--muted); }
+    .stat strong { color: var(--text); }
+
+    .board { display: grid; gap: 6px; }
+    .cell {
+      position: relative; width: 100%; aspect-ratio: 1/1; border-radius: 10px;
+      border:1px solid var(--border); display:grid; place-items:center; font-weight:700;
+      transition: transform .1s ease, background .2s ease, box-shadow .2s ease;
+      background: #0f1622;
+    }
+    .cell:focus { outline: none; box-shadow: 0 0 0 4px var(--ring); }
+    .cell.wall { background: var(--wall); opacity: .9; }
+    .cell.start { background: linear-gradient(180deg, rgba(91,204,161,.35), rgba(17,23,32,.5)); border-color: #1e3a34; }
+    .cell.goal { background: linear-gradient(180deg, rgba(96,165,250,.35), rgba(17,23,32,.5)); border-color: #1e2a4a; }
+    .cell.path { background: linear-gradient(180deg, rgba(139,255,212,.2), rgba(17,23,32,.4)); box-shadow: inset 0 0 0 2px rgba(139,255,212,.3); }
+    .toolbar { display:flex; gap:10px; align-items:center; }
+    .select { border:1px solid var(--border); background:#0e141c; color:var(--text); padding:9px 12px; border-radius:10px; }
+    .note { color: var(--muted); font-size: 14px; }
+    footer { color:#7b8a9a; text-align:center; margin: 26px 0 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a class="brand" href="./home.html" aria-label="Back to Home">
+        <div class="logo" aria-hidden="true"></div>
+        <div>Zen Trails</div>
+      </a>
+      <div class="toolbar">
+        <select id="size" class="select" aria-label="Board size">
+          <option value="6">6x6</option>
+          <option value="8">8x8</option>
+        </select>
+        <button id="restart" class="btn">New Puzzle</button>
+        <button id="audio" class="btn">Sound: Off</button>
+      </div>
+    </header>
+
+    <div class="panel hud" role="region" aria-label="Game heads up display">
+      <div class="stat">Steps: <strong id="steps">0</strong></div>
+      <div class="stat">Best: <strong id="best">—</strong></div>
+      <div class="stat">State: <strong id="state">Find a calm route…</strong></div>
+    </div>
+
+    <div id="board" class="board" role="grid" aria-label="Zen Trails board"></div>
+
+    <footer>
+      Click adjacent tiles to extend your trail from Start to Goal. Undo with right‑click or press U. Soft ambient sound is optional.
+    </footer>
+  </div>
+
+  <script>
+    (function() {
+      const boardEl = document.getElementById('board');
+      const stepsEl = document.getElementById('steps');
+      const bestEl = document.getElementById('best');
+      const stateEl = document.getElementById('state');
+      const restartBtn = document.getElementById('restart');
+      const sizeSelect = document.getElementById('size');
+      const audioBtn = document.getElementById('audio');
+
+      let N = 6;
+      let grid = [];// 0 empty, 1 wall
+      let start = {r:0,c:0};
+      let goal = {r:0,c:0};
+      let path = []; // array of {r,c}
+      let steps = 0;
+      let bestForN = {};
+      let audio = null;
+
+      // Ambient audio using WebAudio: two gentle detuned sines + filtered noise
+      function createAudio() {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const master = ctx.createGain(); master.gain.value = 0.06; master.connect(ctx.destination);
+
+        // pad
+        const padGain = ctx.createGain(); padGain.gain.value = 0.45; padGain.connect(master);
+        const osc1 = ctx.createOscillator(); osc1.type = 'sine'; osc1.frequency.value = 220; osc1.detune.value = -8; osc1.connect(padGain);
+        const osc2 = ctx.createOscillator(); osc2.type = 'sine'; osc2.frequency.value = 330; osc2.detune.value = 6; osc2.connect(padGain);
+        osc1.start(); osc2.start();
+
+        // soft noise
+        const noise = ctx.createBufferSource();
+        const buffer = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i=0;i<data.length;i++) data[i] = (Math.random()*2-1)*0.02;
+        noise.buffer = buffer; noise.loop = true;
+        const noiseFilter = ctx.createBiquadFilter(); noiseFilter.type = 'lowpass'; noiseFilter.frequency.value = 600;
+        const noiseGain = ctx.createGain(); noiseGain.gain.value = 0.2;
+        noise.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(master); noise.start();
+
+        // simple chime on win
+        function chime() {
+          const g = ctx.createGain(); g.gain.value = 0.0; g.connect(master);
+          const o = ctx.createOscillator(); o.type='triangle'; o.frequency.value = 880; o.connect(g); o.start();
+          const now = ctx.currentTime; g.gain.linearRampToValueAtTime(0.3, now+0.01);
+          g.gain.exponentialRampToValueAtTime(0.0001, now+1.2);
+          o.stop(now+1.25);
+        }
+
+        return {
+          ctx,
+          start: () => { if (ctx.state === 'suspended') ctx.resume(); },
+          stop: () => { ctx.suspend(); },
+          chime,
+          isRunning: () => ctx.state === 'running'
+        };
+      }
+
+      function neighbors(r,c) {
+        const acc = [];
+        if (r>0) acc.push({r:r-1,c});
+        if (r<N-1) acc.push({r:r+1,c});
+        if (c>0) acc.push({r,c:c-1});
+        if (c<N-1) acc.push({r,c:c+1});
+        return acc;
+      }
+
+      // A* to verify solvable ignoring current path
+      function heuristic(a,b){ return Math.abs(a.r-b.r)+Math.abs(a.c-b.c); }
+      function astar(src, dst, blockSet) {
+        const key = (p)=>p.r+','+p.c;
+        const open = new Set([key(src)]);
+        const came = new Map();
+        const g = new Map([[key(src),0]]);
+        const f = new Map([[key(src),heuristic(src,dst)]]);
+        while (open.size) {
+          let currentKey=null, current=null, best=Infinity;
+          for (const k of open) { const fv = f.get(k) ?? Infinity; if (fv<best) {best=fv; currentKey=k;} }
+          const parts = currentKey.split(','); current = {r:+parts[0], c:+parts[1]};
+          if (current.r===dst.r && current.c===dst.c) return true;
+          open.delete(currentKey);
+          for (const nb of neighbors(current.r,current.c)) {
+            const nk = key(nb);
+            if (blockSet.has(nk)) continue;
+            const tentative = (g.get(currentKey)??Infinity)+1;
+            if (tentative < (g.get(nk)??Infinity)) {
+              came.set(nk,currentKey);
+              g.set(nk,tentative);
+              f.set(nk, tentative + heuristic(nb,dst));
+              if (!open.has(nk)) open.add(nk);
+            }
+          }
+        }
+        return false;
+      }
+
+      function generateSolvableGrid() {
+        // initialize empty
+        grid = Array.from({length:N}, ()=>Array.from({length:N}, ()=>0));
+        start = {r: Math.floor(Math.random()*N), c: 0};
+        goal = {r: Math.floor(Math.random()*N), c: N-1};
+
+        // place random walls with moderate density, retry until solvable
+        // ensure start/goal are free
+        const maxAttempts = 200;
+        for (let attempt=0; attempt<maxAttempts; attempt++) {
+          // reset
+          for (let r=0;r<N;r++) for (let c=0;c<N;c++) grid[r][c]=0;
+          const density = N===6 ? 0.22 : 0.28;
+          for (let r=0;r<N;r++) {
+            for (let c=0;c<N;c++) {
+              if ((r===start.r && c===start.c) || (r===goal.r && c===goal.c)) continue;
+              if (Math.random()<density) grid[r][c]=1;
+            }
+          }
+          const blocked = new Set();
+          for (let r=0;r<N;r++) for (let c=0;c<N;c++) if (grid[r][c]===1) blocked.add(r+','+c);
+          if (astar(start, goal, blocked)) return; // solvable
+        }
+        // fallback: carve straight corridor
+        for (let r=0;r<N;r++) for (let c=0;c<N;c++) grid[r][c]=1;
+        for (let c=0;c<N;c++) grid[start.r][c]=0;
+      }
+
+      function render() {
+        boardEl.innerHTML = '';
+        boardEl.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
+        for (let r=0;r<N;r++) {
+          for (let c=0;c<N;c++) {
+            const cell = document.createElement('button');
+            cell.className = 'cell';
+            cell.setAttribute('role', 'gridcell');
+            cell.dataset.r = r; cell.dataset.c = c;
+            const isStart = (r===start.r && c===start.c);
+            const isGoal = (r===goal.r && c===goal.c);
+            const onPath = path.find(p=>p.r===r && p.c===c);
+            if (grid[r][c]===1) cell.classList.add('wall');
+            if (onPath) cell.classList.add('path');
+            if (isStart) { cell.classList.add('start'); cell.textContent = 'S'; }
+            if (isGoal) { cell.classList.add('goal'); cell.textContent = 'G'; }
+
+            cell.addEventListener('click', () => tryStep(r,c));
+            cell.addEventListener('contextmenu', (e)=>{ e.preventDefault(); undo(); });
+            cell.addEventListener('keydown', (e)=>{
+              const head = path[path.length-1];
+              if (!head) return;
+              let nr=head.r, nc=head.c; let handled=true;
+              if (e.key==='ArrowUp') nr--; else if (e.key==='ArrowDown') nr++; else if (e.key==='ArrowLeft') nc--; else if (e.key==='ArrowRight') nc++; else handled=false;
+              if (handled) { e.preventDefault(); tryStep(nr,nc); }
+              if (e.key==='u' || e.key==='U') { e.preventDefault(); undo(); }
+            });
+            boardEl.appendChild(cell);
+          }
+        }
+      }
+
+      function resetPath() {
+        path = [{...start}];
+        steps = 0; stepsEl.textContent = '0';
+        stateEl.textContent = 'Find a calm route…';
+        render();
+      }
+
+      function tryStep(r,c) {
+        const head = path[path.length-1];
+        if (!head) return;
+        if (r<0||r>=N||c<0||c>=N) return;
+        if (grid[r][c]===1) return; // wall
+        // must be adjacent and not revisiting any previous node (simple path)
+        const dist = Math.abs(head.r-r)+Math.abs(head.c-c);
+        if (dist!==1) return;
+        if (path.find(p=>p.r===r && p.c===c)) return; // no loops
+
+        path.push({r,c});
+        steps++; stepsEl.textContent = String(steps);
+        render();
+        focusCell(r,c);
+
+        if (r===goal.r && c===goal.c) {
+          stateEl.textContent = 'You found a tranquil path ✨';
+          if (audio && audio.isRunning()) audio.chime();
+          const bestKey = 'best_'+N;
+          const prev = localStorage.getItem(bestKey);
+          if (!prev || steps < parseInt(prev,10)) {
+            localStorage.setItem(bestKey, String(steps));
+          }
+          bestEl.textContent = localStorage.getItem(bestKey) || '—';
+        }
+      }
+
+      function focusCell(r,c) {
+        const btn = [...boardEl.children].find(el => +el.dataset.r===r && +el.dataset.c===c);
+        if (btn) btn.focus();
+      }
+
+      function undo() {
+        if (path.length>1) {
+          path.pop(); steps++; stepsEl.textContent = String(steps); render();
+          const head = path[path.length-1]; focusCell(head.r, head.c);
+        }
+      }
+
+      function setup(size) {
+        N = size; sizeSelect.value = String(size);
+        generateSolvableGrid();
+        const bestKey = 'best_'+N; bestEl.textContent = localStorage.getItem(bestKey) || '—';
+        resetPath();
+      }
+
+      restartBtn.addEventListener('click', () => setup(parseInt(sizeSelect.value,10)));
+      sizeSelect.addEventListener('change', () => setup(parseInt(sizeSelect.value,10)));
+
+      audioBtn.addEventListener('click', async () => {
+        if (!audio) audio = createAudio();
+        if (audio.isRunning()) { audio.stop(); audioBtn.textContent = 'Sound: Off'; }
+        else { await audio.start(); audioBtn.textContent = 'Sound: On'; }
+      });
+
+      // init
+      setup(6);
+    })();
+  </script>
+</body>
+</html>

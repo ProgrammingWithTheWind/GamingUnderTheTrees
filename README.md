@@ -8,3 +8,29 @@ Idea:
 - Each mini game played can earn certain amount of points each day
 - And then NFT Artists can earn ongoing royalties as the NFT gets sold/purchased moving forward.
 - Using Windsurf AI to code this project
+
+Memory Match Game: 
+memory-match.html
+Type: Standalone page with embedded CSS/JS
+Features:
+4x4 and 6x6 board sizes
+Shuffle, flip, match logic with lock during checks
+Moves, matches, and timer HUD
+Keyboard accessible (Tab + Enter/Space)
+Restart button
+
+Zen Trails Game:
+File: 
+zen-trails.html
+Type: Standalone page with embedded CSS/JS
+Gameplay:
+Grid-based pathfinding from Start to Goal
+Click adjacent tiles or use arrow keys to extend your trail
+No loops, walls block movement
+Undo via right-click or press U
+New puzzle sizes: 6x6 or 8x8
+Guaranteed solvable layouts (A* check)
+Audio:
+Soft ambient pad + filtered noise
+Optional: toggle with “Sound: On/Off”
+Gentle win chime*
