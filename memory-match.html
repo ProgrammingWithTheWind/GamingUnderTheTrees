@@ -116,6 +116,11 @@
       const restartBtn = document.getElementById('restart');
       const sizeSelect = document.getElementById('size');
       const tpl = document.getElementById('card-template');
+      const LS_POINTS = 'gut_points';
+
+      function getPoints(){ try { const v = localStorage.getItem(LS_POINTS); return v? JSON.parse(v): 0; } catch { return 0; } }
+      function setPoints(v){ localStorage.setItem(LS_POINTS, JSON.stringify(Math.max(0, Math.floor(v)))); }
+      function addPoints(n){ const cur = getPoints(); setPoints(cur + n); }
 
       let first = null; // first selected card element
       let second = null; // second selected card element
@@ -206,7 +211,10 @@
             if (matches === totalPairs) {
               stopTimer();
               setTimeout(() => {
-                alert(`You won! Moves: ${moves}, Time: ${timeEl.textContent}`);
+                const size = parseInt(sizeSelect.value, 10);
+                const reward = size === 6 ? 100 : 50;
+                addPoints(reward);
+                alert(`You won! Moves: ${moves}, Time: ${timeEl.textContent}.\nYou earned ${reward} points.`);
               }, 50);
             }
           } else {

@@ -34,3 +34,21 @@ Audio:
 Soft ambient pad + filtered noise
 Optional: toggle with “Sound: On/Off”
 Gentle win chime*
+
+NFT Booster Packs
+booster-packs.html
+Supply: Max 1000 total, persisted locally
+Gating: Open button is disabled unless you have enough points
+Cost: 100 points per pack (configurable)
+Result: Random NFT artwork with rarity weighting, added to your collection
+Persistence: Points, remaining supply, and your collection are saved in localStorage
+How it works
+Earn points by winning games.
+Memory Match now awards points:
+4x4: 50 points
+6x6: 100 points
+Open packs on the Booster Packs page when you have at least 100 points.
+Each open:
+Deducts 100 points
+Decreases supply by 1
+Grants a random artwork to your collection gallery

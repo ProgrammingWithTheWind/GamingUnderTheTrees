@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Booster Packs · Gaming Under The Trees</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #111720;
+      --border: #1f2a37;
+      --muted: #93a1b1;
+      --text: #e6edf3;
+      --accent: #6ee7b7;
+      --accent-2: #60a5fa;
+      --ring: rgba(110,231,183,.35);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial;
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(96,165,250,.15), transparent 60%),
+                  radial-gradient(1000px 500px at 120% 10%, rgba(110,231,183,.12), transparent 60%),
+                  var(--bg);
+      color: var(--text);
+    }
+    .container { max-width: 1000px; margin: 0 auto; padding: 24px; }
+    header { display:flex; align-items:center; justify-content:space-between; gap: 12px; margin-bottom: 14px; }
+    .brand { display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text); font-weight:700; }
+    .logo { width: 30px; height: 30px; border-radius: 8px; background: conic-gradient(from 210deg, var(--accent), var(--accent-2)); box-shadow: 0 0 0 5px rgba(110,231,183,.08); }
+    .btn { cursor:pointer; border:1px solid var(--border); background:#0e141c; color:var(--text); padding:10px 14px; border-radius:12px; font-weight:600; }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color:#061018; border:0; box-shadow: 0 0 0 6px var(--ring); }
+    .btn[disabled] { opacity: .5; cursor: not-allowed; }
+
+    .grid { display:grid; grid-template-columns: 1.1fr .9fr; gap: 18px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+    .panel { background: linear-gradient(180deg, rgba(17,23,32,.9), rgba(17,23,32,.6)); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
+    .muted { color: var(--muted); }
+
+    .stats { display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
+    .stat { background: #0e141c; border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; }
+    .stat strong { color: var(--text); }
+
+    .open-row { display:flex; gap:12px; align-items:center; flex-wrap: wrap; margin-top: 10px; }
+
+    .result { margin-top: 14px; display:flex; gap:12px; align-items:center; }
+    .art-card { width: 88px; height: 88px; border-radius: 12px; border:1px solid var(--border); display:grid; place-items:center; font-size: 42px; }
+    .art-meta { line-height: 1.3; }
+
+    .gallery { display:grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
+    .owned { display:flex; gap:10px; align-items:center; }
+
+    .rarity { font-size: 12px; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); display: inline-block; }
+
+    .note { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a class="brand" href="./home.html" aria-label="Back to Home">
+        <div class="logo" aria-hidden="true"></div>
+        <div>Gaming Under The Trees</div>
+      </a>
+      <a class="btn" href="./home.html#games">Earn Points</a>
+    </header>
+
+    <div class="grid">
+      <section class="panel">
+        <h2>Booster Packs</h2>
+        <p class="muted">Open a pack to receive a random NFT artwork. Supply is limited. You can only open a pack when you have enough reward points earned from games.</p>
+
+        <div class="stats" role="region" aria-label="Pack stats">
+          <div class="stat">Supply remaining: <strong id="supply">1000</strong> / 1000</div>
+          <div class="stat">Your points: <strong id="points">0</strong></div>
+          <div class="stat">Cost per pack: <strong id="cost">100</strong> pts</div>
+        </div>
+
+        <div class="open-row">
+          <button id="openBtn" class="btn primary">Open Booster Pack</button>
+          <span id="gateMsg" class="muted"></span>
+        </div>
+
+        <div id="result" class="result" aria-live="polite" hidden>
+          <div id="resultArt" class="art-card" aria-hidden="true">🎴</div>
+          <div class="art-meta">
+            <div id="resultName" style="font-weight:700;">—</div>
+            <div id="resultRarity" class="rarity">—</div>
+            <div class="note">Added to your collection.</div>
+          </div>
+        </div>
+
+        <p class="note">Note: This demo stores supply, points, and inventory locally on your device.</p>
+      </section>
+
+      <section class="panel">
+        <h2>Your Collection</h2>
+        <div id="gallery" class="gallery"></div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const MAX_SUPPLY = 1000;
+      const COST_PER_PACK = 100; // adjust as desired
+      const LS_POINTS = 'gut_points';
+      const LS_SUPPLY = 'gut_packs_remaining';
+      const LS_INV = 'gut_inventory';
+
+      // Example artwork pool with weighted rarities
+      const pool = [
+        { name: 'Leaf Whisper', icon: '🍃', rarity: 'Common', weight: 45 },
+        { name: 'River Ripple', icon: '🌊', rarity: 'Common', weight: 45 },
+        { name: 'Dawn Petal', icon: '🌸', rarity: 'Uncommon', weight: 25 },
+        { name: 'Starlit Path', icon: '🌟', rarity: 'Uncommon', weight: 25 },
+        { name: 'Moon Bloom', icon: '🌙', rarity: 'Rare', weight: 10 },
+        { name: 'Aurora Seed', icon: '🌈', rarity: 'Rare', weight: 10 },
+        { name: 'Winter Spark', icon: '❄️', rarity: 'Epic', weight: 5 },
+        { name: 'Celestial Fern', icon: '🪐', rarity: 'Legendary', weight: 2 },
+      ];
+
+      const supplyEl = document.getElementById('supply');
+      const pointsEl = document.getElementById('points');
+      const costEl = document.getElementById('cost');
+      const openBtn = document.getElementById('openBtn');
+      const gateMsg = document.getElementById('gateMsg');
+      const gallery = document.getElementById('gallery');
+      const result = document.getElementById('result');
+      const resultArt = document.getElementById('resultArt');
+      const resultName = document.getElementById('resultName');
+      const resultRarity = document.getElementById('resultRarity');
+
+      function readLS(key, fallback) {
+        try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
+      }
+      function writeLS(key, value) {
+        localStorage.setItem(key, JSON.stringify(value));
+      }
+
+      function initState() {
+        if (localStorage.getItem(LS_SUPPLY) === null) writeLS(LS_SUPPLY, MAX_SUPPLY);
+        if (localStorage.getItem(LS_POINTS) === null) writeLS(LS_POINTS, 0);
+        if (localStorage.getItem(LS_INV) === null) writeLS(LS_INV, []);
+      }
+
+      function getPoints(){ return readLS(LS_POINTS, 0); }
+      function setPoints(v){ writeLS(LS_POINTS, Math.max(0, Math.floor(v))); }
+      function getSupply(){ return readLS(LS_SUPPLY, MAX_SUPPLY); }
+      function setSupply(v){ writeLS(LS_SUPPLY, Math.max(0, Math.floor(v))); }
+      function getInv(){ return readLS(LS_INV, []); }
+      function setInv(arr){ writeLS(LS_INV, arr); }
+
+      function updateHUD(){
+        supplyEl.textContent = getSupply();
+        pointsEl.textContent = getPoints();
+        costEl.textContent = COST_PER_PACK;
+        const ok = canOpen();
+        openBtn.disabled = !ok;
+        gateMsg.textContent = ok ? '' : gateReason();
+      }
+
+      function canOpen(){
+        if (getSupply() <= 0) return false;
+        if (getPoints() < COST_PER_PACK) return false;
+        return true;
+      }
+      function gateReason(){
+        if (getSupply() <= 0) return 'Sold out.';
+        if (getPoints() < COST_PER_PACK) return `Need ${COST_PER_PACK - getPoints()} more points.`;
+        return '';
+      }
+
+      function weightedRandom(pool){
+        const total = pool.reduce((s,p)=>s+p.weight,0);
+        let r = Math.random() * total;
+        for (const item of pool){
+          if (r < item.weight) return item;
+          r -= item.weight;
+        }
+        return pool[0];
+      }
+
+      function addToInventory(item){
+        const inv = getInv();
+        const entry = { id: Date.now() + '-' + Math.floor(Math.random()*1e6), name: item.name, icon: item.icon, rarity: item.rarity, ts: Date.now() };
+        inv.unshift(entry);
+        setInv(inv);
+        return entry;
+      }
+
+      function renderGallery(){
+        const inv = getInv();
+        gallery.innerHTML = '';
+        if (inv.length === 0) {
+          const p = document.createElement('p'); p.className = 'muted'; p.textContent = 'No artworks yet. Play games to earn points, then open a pack.'; gallery.appendChild(p); return;
+        }
+        for (const it of inv){
+          const card = document.createElement('div'); card.className = 'panel';
+          card.innerHTML = `
+            <div class="owned">
+              <div class="art-card" aria-hidden="true">${it.icon}</div>
+              <div>
+                <div style="font-weight:700;">${it.name}</div>
+                <div class="rarity">${it.rarity}</div>
+                <div class="note">#${it.id.slice(-6)}</div>
+              </div>
+            </div>`;
+          gallery.appendChild(card);
+        }
+      }
+
+      openBtn.addEventListener('click', () => {
+        if (!canOpen()) return;
+        // deduct points and supply
+        setPoints(getPoints() - COST_PER_PACK);
+        setSupply(getSupply() - 1);
+        // roll item
+        const item = weightedRandom(pool);
+        const entry = addToInventory(item);
+        // show result
+        resultArt.textContent = entry.icon;
+        resultName.textContent = entry.name;
+        resultRarity.textContent = entry.rarity;
+        result.hidden = false;
+        // update UI
+        updateHUD();
+        renderGallery();
+      });
+
+      // init
+      initState();
+      updateHUD();
+      renderGallery();
+    })();
+  </script>
+</body>
+</html>
